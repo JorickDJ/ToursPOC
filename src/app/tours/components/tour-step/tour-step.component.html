@@ -1,0 +1,5 @@
+<div class="content">
+    <button *ngIf="currentStep > 0" (click)="previous$.next()">Previous</button>
+    <button *ngIf="!finished" (click)="next$.next()">Next</button>
+    <button *ngIf="finished" (click)="finish$.next()">Finish</button>
+</div>

@@ -1,0 +1,22 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.header {
+    height: 60px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 15px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px,1fr));
+    grid-gap: 15px;
+    height: 100%;
+    max-height: calc(100% - 60px);
+    max-width: 100%;
+    padding: 15px;
+}
