@@ -4,18 +4,23 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { TourStepComponent } from '../components/tour-step/tour-step.component';
 import { DOCUMENT } from '@angular/common';
 import { startWith, takeUntil} from 'rxjs/operators';
+import { TourStep } from '../models/tour-step.model';
+import { TourStepEvent } from '../models/tour-step-event.model';
+import { Position } from '../models/position';
 
 export interface TourConfig {
-  steps?: any[];
+  steps?: TourStep[];
 }
+
+const CONTENT_WIDTH = 240;
 
 @Injectable({
   providedIn: 'root',
 })
 export class ToursService {
 
-  private currentStep = 0;
-  private steps: any[] = [];
+  private currentStep = -1;
+  private steps: TourStep[] = [];
   private overlay: OverlayRef;
   private started: boolean;
   private renderer: Renderer2;
@@ -29,20 +34,34 @@ export class ToursService {
     if (!this.started) {
       this.started = true;
       const component = this.buildOverlay();
-      const { next$, finish$, previous$, destroyed$ } = component.instance;
-      next$.pipe(
+      const { interaction$, destroyed$ } = component.instance;
+      interaction$.pipe(
         takeUntil(destroyed$),
-        startWith(undefined as void)
-      ).subscribe(() => {
-        component.instance.currentStep = this.currentStep;
-        const step = this.getNextStep();
-        if (step) {
-          this.updateStep(step, component.instance.element.nativeElement);
+        startWith('next')
+      ).subscribe((event: TourStepEvent) => {
+        if (event === 'next') {
+          this.currentStep++;
         }
-        component.instance.finished = this.currentStep >= this.steps.length;
-      });
+        else if (event === 'previous') {
+          this.currentStep--;
+        }
+        else {
+          this.stopTour();
+          return;
+        }
 
-      finish$.subscribe(() => this.stopTour());
+        const step = this.getNextStep();
+        component.instance.currentStep = this.currentStep;
+        component.instance.finished = this.currentStep + 1 >= this.steps.length;
+        if (step) {
+          const element = this.getElement(step.step);
+          if (element) {
+            component.instance.step = step;
+            component.instance.position = this.calculatePosition(element);
+            this.updateStep(element, component.instance.element.nativeElement);
+          }
+        }
+      });
     } else {
       this.stopTour();
     }
@@ -59,12 +78,11 @@ export class ToursService {
     return component;
   }
 
-  private getNextStep(back?: boolean): HTMLElement {
+  private getNextStep(back?: boolean): TourStep {
     const stepIndex = this.currentStep;
     if (stepIndex > -1 && stepIndex < this.steps.length) {
       const step = this.steps[stepIndex];
-      this.currentStep++;
-      return this.document.getElementById(step) as HTMLElement;
+      return step;
     }
 
     return null;
@@ -79,11 +97,25 @@ export class ToursService {
     }
   }
 
+  private getElement(stepName: string): HTMLElement {
+    const element = this.document.getElementById(stepName) as HTMLElement;
+    return element ?? null;
+  }
+
+  private calculatePosition(element: HTMLElement): Position {
+    const { x, width } = element.getBoundingClientRect();
+    const { innerWidth } = window;
+    if (x + width > innerWidth - CONTENT_WIDTH) {
+      return 'left';
+    }
+    return 'right';
+  }
+
   private stopTour(): void {
     this.overlay.detach();
     this.overlay = null;
     this.started = false;
-    this.currentStep = 0;
+    this.currentStep = -1;
     this.steps = [];
   }
 }

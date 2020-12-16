@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TourStepComponent } from './components/tour-step/tour-step.component';
-import { ToursService } from './services/tours.service';
 import { OverlayModule } from '@angular/cdk/overlay';
 
 @NgModule({

@@ -1,5 +1,12 @@
-<div class="content">
-    <button *ngIf="currentStep > 0" (click)="previous$.next()">Previous</button>
-    <button *ngIf="!finished" (click)="next$.next()">Next</button>
-    <button *ngIf="finished" (click)="finish$.next()">Finish</button>
+<div class="content" [class]="position">
+    <ng-container *ngIf="step && step.content$ | async as content; else loading">
+        <div [innerHTML]="content"></div>
+    </ng-container>
+    <button *ngIf="currentStep > 0" (click)="interaction$.next('previous')">Previous</button>
+    <button *ngIf="!finished" (click)="interaction$.next('next')">Next</button>
+    <button *ngIf="finished" (click)="interaction$.next('finished')">Finish</button>
 </div>
+
+<ng-template #loading>
+    <div>Loading...</div>
+</ng-template>
