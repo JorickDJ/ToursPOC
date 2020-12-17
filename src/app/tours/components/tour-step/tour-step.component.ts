@@ -2,7 +2,7 @@ import { Component, ElementRef, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { TourStep } from '../../models/tour-step.model';
 import { TourStepEvent } from '../../models/tour-step-event.model';
-import { Position } from '../../models/position';
+import { ContentPosition } from '../../models/content-position';
 
 @Component({
   selector: 'tour-step',
@@ -17,7 +17,7 @@ export class TourStepComponent implements OnDestroy {
   currentStep: number;
   finished: boolean;
   step: TourStep;
-  position: Position = 'right';
+  position: ContentPosition = 'right';
 
   constructor(private elementRef: ElementRef) { }
 

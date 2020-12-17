@@ -10,3 +10,8 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; color: #fff
     box-sizing: border-box;
     outline: none;
 }
+
+.tour-transparent-backdrop {
+    background-color: transparent;
+    position: absolute;
+}

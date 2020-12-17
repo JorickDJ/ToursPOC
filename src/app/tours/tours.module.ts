@@ -1,16 +1,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TourStepComponent } from './components/tour-step/tour-step.component';
-import { OverlayModule } from '@angular/cdk/overlay';
+import { TourOutletComponent } from './components/tours-outlet/tours-outlet.component';
+import { PortalModule } from '@angular/cdk/portal';
 
 @NgModule({
-  declarations: [TourStepComponent],
+  declarations: [TourStepComponent, TourOutletComponent],
   imports: [
     CommonModule,
-    OverlayModule
-  ],
-  exports: [
-    TourStepComponent
+    PortalModule
   ],
   entryComponents: [
     TourStepComponent
