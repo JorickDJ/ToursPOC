@@ -6,7 +6,8 @@ import { startWith, takeUntil } from 'rxjs/operators';
 import { TourOutletComponent } from '../components/tours-outlet/tours-outlet.component';
 
 import { ElementOffset, TourStep } from '../models';
-import { ContentPosition, TourStepEvent } from '../types';
+import { TourStepEvent } from '../types';
+import { Subject } from 'rxjs';
 
 export interface TourConfig {
   steps?: TourStep[];
@@ -15,13 +16,17 @@ export interface TourConfig {
 const CONTENT_WIDTH = 240;
 
 @Injectable()
-export class ToursService {
+export class TourService {
 
   private currentStep = -1;
   private steps: TourStep[] = [];
   private portalHost: DomPortalOutlet;
   private started: boolean;
   private renderer: Renderer2;
+
+  tourStopped$: Subject<void> = new Subject();
+  tourStarted$: Subject<void> = new Subject();
+  nextStep$: Subject<{ current: number; total: number; step: TourStep}> = new Subject();
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -32,11 +37,13 @@ export class ToursService {
     this.renderer = this.rendererFactory.createRenderer(null, null);
   }
 
-  startTour({ steps }: TourConfig): void {
+  startTour(steps: TourStep[]): void {
     this.steps = steps;
     if (!this.started) {
       this.started = true;
+      this.tourStarted$.next();
       const component = this.buildOverlay();
+      component.totalSteps = this.steps.length;
       const { interaction$, destroyed$ } = component;
       interaction$.pipe(
         takeUntil(destroyed$),
@@ -60,7 +67,6 @@ export class ToursService {
           const element = this.getElement(step.step);
           if (element) {
             component.step = step;
-            component.position = this.calculateContentPosition(element);
             this.updateStep(element, component.element.nativeElement);
             if (!this.isInViewPort(element)) {
               setTimeout(() => {
@@ -70,6 +76,8 @@ export class ToursService {
                 });
               }, 0);
             }
+            component.nextStep$.next(element);
+            this.nextStep$.next({ current: this.currentStep, total: this.steps.length, step });
           }
         } else {
           interaction$.next('next');
@@ -121,15 +129,6 @@ export class ToursService {
     };
   }
 
-  private calculateContentPosition(element: HTMLElement): ContentPosition {
-    const { x, width } = element.getBoundingClientRect();
-    const { innerWidth } = window;
-    if (x + width > innerWidth - CONTENT_WIDTH) {
-      return 'left';
-    }
-    return 'right';
-  }
-
   private updateStep(step: HTMLElement, element: any): void {
     if (step) {
       const { left, top, width, height } = this.getOffset(step);
@@ -145,6 +144,7 @@ export class ToursService {
   }
 
   private stopTour(): void {
+    this.tourStopped$.next();
     this.portalHost.detach();
     this.portalHost = null;
     this.started = false;

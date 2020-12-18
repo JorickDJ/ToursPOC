@@ -1,10 +1,18 @@
-<div class="content" [class]="position">
+<div class="content-container" [class]="position$ | async" #content>
+    <button class="close-button" (click)="interaction$.next('finished')">&times;</button>
     <ng-container *ngIf="step && step.content$ | async as content; else loading">
-        <div [innerHTML]="content"></div>
+        <div class="content" [innerHTML]="content"></div>
     </ng-container>
-    <button *ngIf="currentStep > 0" (click)="interaction$.next('previous')">Previous</button>
-    <button *ngIf="!finished" (click)="interaction$.next('next')">Next</button>
-    <button *ngIf="finished" (click)="interaction$.next('finished')">Finish</button>
+    <div class="footer">
+        <div class="steps">
+            {{ currentStep + 1 }} / {{ totalSteps }}
+        </div>
+        <div>
+        <button class="step-button" *ngIf="currentStep > 0" (click)="interaction$.next('previous')">Previous</button>
+        <button class="step-button" *ngIf="!finished" (click)="interaction$.next('next')">Next</button>
+        <button class="step-button finish-button" *ngIf="finished" (click)="interaction$.next('finished')">Finish</button>
+    </div>
+    </div>
 </div>
 
 <ng-template #loading>

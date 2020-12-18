@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { PortalModule } from '@angular/cdk/portal';
 import { TourStepComponent } from './components/tour-step/tour-step.component';
 import { TourOutletComponent } from './components/tours-outlet/tours-outlet.component';
-import { ToursService } from './services/tours.service';
+import { TourService } from './services/tour.service';
 
 @NgModule({
   declarations: [
@@ -15,7 +15,7 @@ import { ToursService } from './services/tours.service';
     PortalModule
   ],
   providers: [
-    ToursService
+    TourService
   ]
 })
-export class ToursModule { }
+export class TourModule { }

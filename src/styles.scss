@@ -2,9 +2,10 @@
 
 html, body { 
     height: 100%;
-    background-color: rgb(34, 28, 39);
+    // background-color: rgb(34, 28, 39);
+    background-color: rgb(250, 250, 250);
 }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; color: #fff;}
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; color: #000;}
 
 *, *:after, *:before {
     box-sizing: border-box;
