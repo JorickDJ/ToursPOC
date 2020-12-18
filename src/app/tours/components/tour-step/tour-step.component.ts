@@ -1,8 +1,7 @@
 import { Component, ElementRef, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
-import { TourStep } from '../../models/tour-step.model';
-import { TourStepEvent } from '../../models/tour-step-event.model';
-import { ContentPosition } from '../../models/content-position';
+import { TourStep } from '../../models';
+import { TourStepEvent, ContentPosition } from '../../types';
 
 @Component({
   selector: 'tour-step',

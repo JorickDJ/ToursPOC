@@ -3,10 +3,10 @@ import { ComponentPortal, DomPortalOutlet } from '@angular/cdk/portal';
 import { TourStepComponent } from '../components/tour-step/tour-step.component';
 import { DOCUMENT } from '@angular/common';
 import { startWith, takeUntil } from 'rxjs/operators';
-import { TourStep } from '../models/tour-step.model';
-import { TourStepEvent } from '../models/tour-step-event.model';
-import { ContentPosition } from '../models/content-position';
 import { TourOutletComponent } from '../components/tours-outlet/tours-outlet.component';
+
+import { ElementOffset, TourStep } from '../models';
+import { ContentPosition, TourStepEvent } from '../types';
 
 export interface TourConfig {
   steps?: TourStep[];
@@ -14,9 +14,7 @@ export interface TourConfig {
 
 const CONTENT_WIDTH = 240;
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class ToursService {
 
   private currentStep = -1;
@@ -62,10 +60,19 @@ export class ToursService {
           const element = this.getElement(step.step);
           if (element) {
             component.step = step;
-            component.position = this.calculatePosition(element);
+            component.position = this.calculateContentPosition(element);
             this.updateStep(element, component.element.nativeElement);
-            this.scrollToElement(element);
+            if (!this.isInViewPort(element)) {
+              setTimeout(() => {
+                window.scrollTo({
+                  top: this.getOffset(element).top - 15,
+                  behavior: 'smooth'
+                });
+              }, 0);
+            }
           }
+        } else {
+          interaction$.next('next');
         }
       });
     } else {
@@ -79,10 +86,10 @@ export class ToursService {
     }
 
     this.portalHost = new DomPortalOutlet(
-        this.document.body,
-        this.componentFactoryResolver,
-        this.appRef,
-        this.injector);
+      this.document.body,
+      this.componentFactoryResolver,
+      this.appRef,
+      this.injector);
 
     const portalRef = this.portalHost.attach(new ComponentPortal(TourOutletComponent));
     return portalRef.instance.step;
@@ -98,33 +105,43 @@ export class ToursService {
     return null;
   }
 
-  private scrollToElement(target: HTMLElement): void {
-    const { innerHeight } = window;
-    const { x, y, width, height } = target.getBoundingClientRect();
-    console.log(y + height > innerHeight);
+  private isInViewPort(element: HTMLElement): boolean {
+    const { top, height } = this.getOffset(element);
+    const { scrollY, innerHeight } = window;
+    return top >= scrollY && top + height <= innerHeight + scrollY;
   }
 
-  private updateStep(step: HTMLElement, element: any): void {
-    if (step) {
-      const { x, y, width, height } = step.getBoundingClientRect();
-      this.renderer.setStyle(element, 'width', `${width}px`);
-      this.renderer.setStyle(element, 'height', `${height}px`);
-      this.renderer.setStyle(element, 'transform', `translate(${x}px, ${y}px)`);
-    }
+  private getOffset(element: HTMLElement): ElementOffset {
+    const { left, top, width, height } = element.getBoundingClientRect();
+    return {
+      left: left + window.scrollX,
+      top: top + window.scrollY,
+      width,
+      height
+    };
   }
 
-  private getElement(stepName: string): HTMLElement {
-    const element = this.document.getElementById(stepName) as HTMLElement;
-    return element ?? null;
-  }
-
-  private calculatePosition(element: HTMLElement): ContentPosition {
+  private calculateContentPosition(element: HTMLElement): ContentPosition {
     const { x, width } = element.getBoundingClientRect();
     const { innerWidth } = window;
     if (x + width > innerWidth - CONTENT_WIDTH) {
       return 'left';
     }
     return 'right';
+  }
+
+  private updateStep(step: HTMLElement, element: any): void {
+    if (step) {
+      const { left, top, width, height } = this.getOffset(step);
+      this.renderer.setStyle(element, 'width', `${width}px`);
+      this.renderer.setStyle(element, 'height', `${height}px`);
+      this.renderer.setStyle(element, 'transform', `translate(${left}px, ${top}px)`);
+    }
+  }
+
+  private getElement(stepName: string): HTMLElement {
+    const element = this.document.getElementById(stepName) as HTMLElement;
+    return element ?? null;
   }
 
   private stopTour(): void {
